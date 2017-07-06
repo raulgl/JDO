@@ -33,7 +33,7 @@ public class DataTableTest {
 		ResultSet rs = s.executeQuery ("select * from aglyconas");
 		DataTable dt = new DataTable();
 		dt.fill(rs);
-		assertEquals(dt.row(1).get_double("valor"),0.334,0.001);
+		assertEquals(dt.row(1).get_double("valor"),0.339,0.001);
 	}
 
 	@Test
@@ -44,6 +44,21 @@ public class DataTableTest {
 		DataTable dt = new DataTable();
 		dt.fill(rs);
 		assertEquals(dt.row(0).get_String("ffqs"),"ffq_french");
+		
+	}
+	@Test
+	public final void writeJson() throws Exception {
+		Connection conexion = DriverManager.getConnection ("jdbc:mysql://localhost/farmacia2017","root", "patata");
+		Statement s = conexion.createStatement();
+		ResultSet rs = s.executeQuery ("select * from aglyconas");
+		DataTable dt = new DataTable();
+		dt.fill(rs);
+		dt.writeJson("C:/prueba.json");
+		DataTable dt2 = new DataTable("C:/prueba.json");
+		assertEquals(dt.RowCount(),dt2.RowCount());
+		assertEquals(dt.ColumCount(),dt2.ColumCount());
+		assertEquals(dt,dt2);
+		
 		
 	}
 
