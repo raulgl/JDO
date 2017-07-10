@@ -74,7 +74,15 @@ public class DataRow {
 	 public String get_String(String name){
 		 return dr.get(name).toString();
 	 }
+	 public String get_String(int pos){
+		 String name = dr.keySet().toArray()[pos].toString();
+		 return dr.get(name).toString();
+	 }
 	 public int get_int(String name){
+		 return ((Integer) dr.get(name)).intValue();
+	 }
+	 public int get_int(int pos){
+		 String name = dr.keySet().toArray()[pos].toString();
 		 return ((Integer) dr.get(name)).intValue();
 	 }
 	 public double get_double(String name){
@@ -82,14 +90,33 @@ public class DataRow {
 		 //return ((Double) dr.get(name)).doubleValue();
 		 return new Double (dr.get(name).toString());
 	 }
+	 public double get_double(int pos){
+		 
+		 //return ((Double) dr.get(name)).doubleValue();
+		 String name = dr.keySet().toArray()[pos].toString();
+		 return new Double (dr.get(name).toString());
+	 }
 	 public Date get_date(String name){
 		 //return new Date(dr.get(name).toString());
+		 return Date.valueOf(dr.get(name).toString());
+	 }
+	 public Date get_date(int pos){
+		 //return new Date(dr.get(name).toString());
+		 String name = dr.keySet().toArray()[pos].toString();
 		 return Date.valueOf(dr.get(name).toString());
 	 }
 	 public Time get_time(String name){
 		 return Time.valueOf(dr.get(name).toString());
 	 }
+	 public Time get_time(int pos){
+		 String name = dr.keySet().toArray()[pos].toString();
+		 return Time.valueOf(dr.get(name).toString());
+	 }
 	 public Timestamp get_timestamp(String name){
+		 return Timestamp.valueOf(dr.get(name).toString());
+	 }
+	 public Timestamp get_timestamp(int pos){
+		 String name = dr.keySet().toArray()[pos].toString();
 		 return Timestamp.valueOf(dr.get(name).toString());
 	 }
 	 public void writeJson(JsonObjectBuilder jo,int i) throws ClassNotFoundException{

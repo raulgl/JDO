@@ -72,6 +72,9 @@ public class DataTableTest {
 		row.Add(0, "TOTAL");
 		row.Add(1, dt.RowCount());
 		row.Add(2, "FILAS");
+		assertEquals(row.get_String(0),row.get_String("Nutr_No"));
+		assertEquals(row.get_int(1),row.get_int("valor"));
+		assertEquals(row.get_String(2),row.get_String("NDB_No"));
 		dt.addRow(row);
 		dt.writeJson("C:/prueba.json");
 		
