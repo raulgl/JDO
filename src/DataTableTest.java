@@ -61,5 +61,22 @@ public class DataTableTest {
 		
 		
 	}
+	@Test
+	public final void NewRow() throws Exception {
+		Connection conexion = DriverManager.getConnection ("jdbc:mysql://localhost/farmacia2017","root", "patata");
+		Statement s = conexion.createStatement();
+		ResultSet rs = s.executeQuery ("select * from aglyconas");
+		DataTable dt = new DataTable();
+		dt.fill(rs);
+		DataRow row = dt.NewRow();
+		row.Add(0, "TOTAL");
+		row.Add(1, dt.RowCount());
+		row.Add(2, "FILAS");
+		dt.addRow(row);
+		dt.writeJson("C:/prueba.json");
+		
+		
+	}
+	
 
 }

@@ -2,6 +2,9 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Set;
+
 import javax.json.*;
 
 import java.lang.reflect.Constructor;
@@ -16,6 +19,15 @@ public class DataRow {
 	 public DataRow(){
 		 dr = new  Hashtable <String, Object>();
 		 
+	 }
+	 public DataRow(DataRow row){
+		 dr = new  Hashtable <String, Object>();
+		 Iterator<String> keys = row.keys().iterator();
+		 while(keys.hasNext()){
+			 String key = keys.next();
+			 dr.put(key, new Object());
+			 
+		 }
 	 }
 	 public DataRow(JsonArray array) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException{
 		 dr = new  Hashtable <String, Object>();
@@ -54,6 +66,10 @@ public class DataRow {
 	 }
 	 public void Add(String name,Object value){
 		 dr.put(name, value);
+	 }
+	 public void Add(int pos,Object value){
+		 dr.put(dr.keySet().toArray()[pos].toString(),value);
+		 
 	 }
 	 public String get_String(String name){
 		 return dr.get(name).toString();
@@ -110,5 +126,8 @@ public class DataRow {
 		 }
 		 return true;
 		 
+	 }
+	 public Set keys(){
+		 return dr.keySet();
 	 }
 }

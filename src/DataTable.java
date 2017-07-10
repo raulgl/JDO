@@ -86,6 +86,12 @@ public class DataTable {
 	public int ColumCount(){
 		return dt.get(0).Count();
 	}
+	public void addRow(DataRow dr){
+		dt.add(dr);		
+	}
+	public DataRow NewRow(){
+		return new DataRow(dt.get(0));
+	}
 	
 	
 }
