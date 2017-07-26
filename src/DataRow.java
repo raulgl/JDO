@@ -15,7 +15,7 @@ import java.sql.Date;
 
 
 public class DataRow {
-	 Hashtable <String, Object> dr;
+	 protected Hashtable <String, Object> dr;
 	 public DataRow(){
 		 dr = new  Hashtable <String, Object>();
 		 
@@ -28,6 +28,16 @@ public class DataRow {
 			 dr.put(key, new Object());
 			 
 		 }
+	 }
+	 public DataRow Copy(){
+		 DataRow drnew = new DataRow();
+		 Iterator<String> keys = keys().iterator();
+		 while(keys.hasNext()){
+			 String key = keys.next();
+			 drnew.Add(key, dr.get(key));
+			 
+		 }
+		 return drnew;
 	 }
 	 public DataRow(JsonArray array) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException{
 		 dr = new  Hashtable <String, Object>();
@@ -154,7 +164,7 @@ public class DataRow {
 		 return true;
 		 
 	 }
-	 public Set keys(){
+	 public Set<String> keys(){
 		 return dr.keySet();
 	 }
 }

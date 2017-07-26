@@ -13,7 +13,8 @@ import javax.json.*;
 
 
 public class DataTable {
-	ArrayList<DataRow> dt;
+	protected ArrayList<DataRow> dt;
+	protected Set<String> columnas;
 	public DataTable(){
 		dt = new ArrayList();
 	}
@@ -31,9 +32,24 @@ public class DataTable {
 				dt.add(dr);				
 			}
 			jsr.close();
+			columnas = dt.get(0).keys();
 		} catch (FileNotFoundException e) {
 			throw new Exception("No se ha podido parsear el DataTable correctamente");
 		}
+		
+	}
+	public DataTable (DataTable dtable){
+		ArrayList<DataRow> dtrows = dtable.dt;
+		DataRow patron = dtrows.get(0);
+		columnas = patron.keys();
+	}
+	public DataTable Copy(){
+		DataTable newdt = new DataTable();
+		for ( int i = 0 ; i < dt.size() ; i++ ) {
+			newdt.addRow(dt.get(i).Copy());
+		}
+		newdt.columnas = newdt.dt.get(0).keys();
+		return newdt;
 		
 	}
 	public DataRow row(int i){
@@ -51,6 +67,7 @@ public class DataTable {
             }
 			dt.add(dr);
 		}
+		columnas = dt.get(0).keys();
 	}
 	public void writeJson(String path) throws Exception{
 		JsonObjectBuilder jo = Json.createObjectBuilder();
@@ -84,13 +101,17 @@ public class DataTable {
 		return dt.size();
 	}
 	public int ColumCount(){
-		return dt.get(0).Count();
+		return columnas.size();
 	}
 	public void addRow(DataRow dr){
 		dt.add(dr);		
 	}
 	public DataRow NewRow(){
-		return new DataRow(dt.get(0));
+		DataRow dr = new DataRow();
+		for(String key: columnas){
+			dr.Add(key, new Object());
+		}
+		return dr;
 	}
 	
 	

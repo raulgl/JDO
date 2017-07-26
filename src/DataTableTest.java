@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
@@ -22,8 +23,20 @@ public class DataTableTest {
 	}
 
 	@Test
-	public final void testDataTable() {
-		fail("Not yet implemented"); // TODO
+	public final void testDataTable() throws SQLException {
+		Connection conexion = DriverManager.getConnection ("jdbc:mysql://localhost/farmacia2017","root", "patata");
+		Statement s = conexion.createStatement();
+		ResultSet rs = s.executeQuery ("select * from aglyconas");
+		DataTable dt = new DataTable();
+		dt.fill(rs);
+		DataTable dt2 = new DataTable(dt);
+		Set<String> cols = dt2.columnas;
+		assertEquals(cols.contains("NDB_No"),true);
+		assertEquals(cols.contains("Nutr_No"),true);
+		assertEquals(cols.contains("valor"),true);
+		assertEquals(cols.contains("valo"),false);
+		
+		
 	}
 
 	@Test
@@ -76,10 +89,22 @@ public class DataTableTest {
 		assertEquals(row.get_int(1),row.get_int("valor"));
 		assertEquals(row.get_String(2),row.get_String("NDB_No"));
 		dt.addRow(row);
-		dt.writeJson("C:/prueba.json");
-		
+		dt.writeJson("C:/prueba.json");	
 		
 	}
+	@Test
+	public final void Copy() throws Exception {
+		Connection conexion = DriverManager.getConnection ("jdbc:mysql://localhost/farmacia2017","root", "patata");
+		Statement s = conexion.createStatement();
+		ResultSet rs = s.executeQuery ("select * from aglyconas");
+		DataTable dt = new DataTable();
+		dt.fill(rs);
+		DataTable dt2= dt.Copy();
+		assertEquals(dt2.equals(dt),true);
+		
+	}
+	
+	
 	
 
 }

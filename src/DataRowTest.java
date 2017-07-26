@@ -115,5 +115,20 @@ public class DataRowTest {
 		jso.toString();
 		assertEquals(jo.build().toString(),"\"{Row\":[{\"key\":\"Key\",\"Tipo\":\"Double\",\"Valor\":\"100.5\"}]}");
 	}
+	@Test
+	public final void Copy() throws ClassNotFoundException, IOException {
+		DataRow dr = new DataRow();
+		dr.Add("key1", new Double(100.5));
+		dr.Add("key3", new Integer(100));
+		dr.Add("key2", "valor");
+		dr.Add("key4", Date.valueOf("2017-07-05"));
+		dr.Add("key5", Time.valueOf("12:02:00"));
+		DataRow dr2 = dr.Copy();
+		assertEquals(dr2.equals(dr),true);
+		
+		
+		
+		
+	}
 
 }
