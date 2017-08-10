@@ -3,6 +3,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -41,7 +43,125 @@ public class DataTable {
 	public DataTable (DataTable dtable){
 		ArrayList<DataRow> dtrows = dtable.dt;
 		DataRow patron = dtrows.get(0);
+		dt = new ArrayList();
 		columnas = patron.keys();
+	}
+	public void orderby(String key) throws Exception{
+		orderby(0,dt.size()-1,key);
+	}
+	public void orderby(int o,int N,String key) throws Exception{
+		int i = o, j = N;
+        // Get the pivot element from the middle of the list
+		int middle = o + (N-o)/2;
+		DataRow pivot = dt.get(middle);
+        //int pivot = numbers[low + (high-low)/2];
+
+        // Divide into two lists
+        while (i <= j) {
+            // If the current value from the left list is smaller than the pivot
+            // element then get the next element from the left list
+        	System.out.println(i);
+        	DataRow dri = dt.get(i);
+        	Integer m = (Integer)pivot.CompareTo(dri,key);
+            while (m>0) {
+                i++;
+                dri = dt.get(i);
+            	m = (Integer)pivot.CompareTo(dri,key);
+                
+            }
+            // If the current value from the right list is larger than the pivot
+            // element then get the next element from the right list
+            DataRow drj = dt.get(j);
+            m = (Integer)pivot.CompareTo(drj,key);
+            while (m<0) {
+                j--;
+                drj = dt.get(j);
+                m = (Integer)pivot.CompareTo(drj,key);
+            }
+
+            // If we have found a value in the left list which is larger than
+            // the pivot element and if we have found a value in the right list
+            // which is smaller than the pivot element then we exchange the
+            // values.
+            // As we are done we can increase i and j
+            if (i <= j) {
+            	swap(i, j);
+                i++;
+                j--;
+            }
+        }
+        // Recursion
+        if (o < j)
+        	orderby(o, j,key);
+        if (i <N)
+        	orderby(i, N,key);
+	}
+	/*public void orderby(int o,int N,String key) throws Exception{
+		if(o<N){
+			if(o==3 && N==4){
+				int k=0;
+			}
+			int middle = o + (N - o) / 2;
+			orderby(o,middle,key);
+			orderby(middle+1,N,key);
+			merge(o,N,key);
+		}
+	}*/
+	
+	public void swap(int i,int j) throws Exception{
+		
+		DataRow dri = dt.get(i);
+		DataRow drj = dt.get(j);
+		dt.set(i, dt.get(j));
+		dt.set(j, dri);
+		dri = dt.get(i);
+		drj = dt.get(j);
+		
+		
+	}
+	public void merge(int o,int N,String key) throws Exception{
+		int middle = o + (N - o) / 2;
+		middle++;
+		int i=o;
+		int j=middle;
+		String v="";
+		
+		while(i<=middle && j<=N){
+			DataRow dri = dt.get(i);
+			DataRow drj = dt.get(j);
+			String ndb1 = dri.get_String(key);
+			String ndb2 = drj.get_String(key);
+			if(ndb1.compareTo("01004")==0 && ndb2.compareTo("01003")==0){
+				System.out.println("entro");
+			}
+			
+			Integer m = (Integer)drj.CompareTo(dri,key);
+			if(m.intValue()<0){
+				swap(i,j);
+				if(ndb1.compareTo("01003")==0 || ndb2.compareTo("01003")==0){
+					writeJson("C:/prueba2.json");
+				}
+				j++;
+			}
+			else{
+				i++;
+			}
+		}
+		if(j>N){
+			j--;
+			while(i<=middle){
+				DataRow dri = dt.get(i);
+				DataRow drj = dt.get(j);
+				String ndb1 = dri.get_String(key);
+				String ndb2 = drj.get_String(key);
+				Integer m = (Integer)drj.CompareTo(dri,key);
+				if(m.intValue()<0){
+					swap(i,j);
+				}
+				
+			}
+			
+		}
 	}
 	public DataTable Copy(){
 		DataTable newdt = new DataTable();
@@ -90,9 +210,21 @@ public class DataTable {
     public boolean equals(Object obj) {
         DataTable table = (DataTable)obj;
         boolean iguales =true;
-        for ( int i = 0 ; i < dt.size() ; i++ ) {
-			iguales = iguales && dt.get(i).equals(table.row(i));
-		 }
+        if(dt.size()!=table.RowCount()){
+        	iguales=false;
+        }
+        else{
+        	for ( int i = 0 ; i < dt.size() ; i++ ) {
+        		if(i==2){
+        			System.out.println("entro aqui");
+        		}
+        		iguales = iguales && dt.get(i).equals(table.row(i));
+        		if(!iguales){
+        			System.out.println(i);
+        		}
+        		
+        	}
+        }
         return iguales;
         
         

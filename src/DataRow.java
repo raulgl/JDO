@@ -81,6 +81,13 @@ public class DataRow {
 		 dr.put(dr.keySet().toArray()[pos].toString(),value);
 		 
 	 }
+	 public Object get(String name){
+		 return dr.get(name);
+	 }
+	 public Object get(int pos){
+		 String name = dr.keySet().toArray()[pos].toString();
+		 return dr.get(name);
+	 }
 	 public String get_String(String name){
 		 return dr.get(name).toString();
 	 }
@@ -161,10 +168,32 @@ public class DataRow {
 			 String destino= row.get_String(key);
 			 iguales = iguales && origen.compareTo(destino)==0;
 		 }
-		 return true;
+		 return iguales;
 		 
 	 }
 	 public Set<String> keys(){
 		 return dr.keySet();
+	 }
+	 public Object CompareTo(DataRow dri,String key) throws Exception{
+		 try {
+			 Class<?> cls = get(key).getClass();
+			 Method method = cls.getMethod("compareTo", Object.class);
+			 return method.invoke(get(key),dri.get(key));
+		 } catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				throw new Exception("Tipo de columna no permite ser ordenado");
+		 } catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				throw new Exception("Tipo de columna no permite ser ordenado");
+		 } catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				throw new Exception("Tipo de columna no permite ser ordenado");
+		 } catch (SecurityException e) {
+				// TODO Auto-generated catch block
+				throw new Exception("Tipo de columna no permite ser ordenado");
+		 } catch (NoSuchMethodException e) {
+				// TODO Auto-generated catch block
+				throw new Exception("Tipo de columna no permite ser ordenado");
+		 }
 	 }
 }
