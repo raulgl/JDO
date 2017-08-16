@@ -8,6 +8,9 @@ import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import javax.json.*;
@@ -93,7 +96,55 @@ public class DataTable {
 		
 		
 	}
-	
+	public DataTable join (DataTable dt,String key) throws Exception{
+		DataTable result = new DataTable();
+		dt.orderby(key);
+		//dt.writeJson("C:/prueba.json");
+		orderby(key);
+		int j = 0;
+		int i = 0;
+		while(i<RowCount() && j<dt.RowCount()){
+			DataRow dri = row(i);
+			DataRow drj = dt.row(j);
+			Integer m = (Integer)drj.CompareTo(dri,key);
+			if(m==0){
+				int k=j;
+				DataRow drk = dt.row(k);
+				while(k<dt.RowCount() && m==0){
+					DataRow dr = new DataRow(dri,drk,key);
+					result.addRow(dr);
+					k++;
+					if(k<dt.RowCount()){
+						drk = dt.row(k);
+						m = (Integer)drk.CompareTo(dri,key);
+					}
+					
+										
+				}
+				//i++;
+			}
+			if(m<0){
+				j++;
+			}
+			else{
+				i++;
+			}
+		}
+		result.columnas = new HashSet<String>();
+		Iterator<String> keys = columnas.iterator();
+		 while(keys.hasNext()){
+			 String llave = keys.next();
+			 result.columnas.add(llave);
+		 }
+		 keys = dt.columnas.iterator();
+		 while(keys.hasNext()){
+			 String llave = keys.next();
+			 if(llave.compareTo(key)!=0){
+				 result.columnas.add(llave);
+			 }
+		 }
+		return result;
+	}
 	public DataTable Copy(){
 		DataTable newdt = new DataTable();
 		for ( int i = 0 ; i < dt.size() ; i++ ) {

@@ -74,6 +74,24 @@ public class DataRow {
 		 }
 		 
 	 }
+	 public DataRow (DataRow dri,DataRow drj,String key){
+		 dr = new  Hashtable <String, Object>();
+		 Iterator<String> keys = dri.keys().iterator();
+		 while(keys.hasNext()){
+			 String llave = keys.next();
+			 dr.put(llave, dri.get(llave));
+			 
+		 }
+		 keys = drj.keys().iterator();
+		 while(keys.hasNext()){
+			 String llave = keys.next();
+			 if(llave.compareTo(key)!=0){
+				 dr.put(llave, drj.get(llave));
+			 }
+			 
+		 }
+		 
+	 }
 	 public void Add(String name,Object value){
 		 dr.put(name, value);
 	 }

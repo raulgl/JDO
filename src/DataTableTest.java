@@ -89,7 +89,6 @@ public class DataTableTest {
 		assertEquals(row.get_int(1),row.get_int("valor"));
 		assertEquals(row.get_String(2),row.get_String("NDB_No"));
 		dt.addRow(row);
-		dt.writeJson("C:/prueba.json");	
 		
 	}
 	@Test
@@ -116,10 +115,28 @@ public class DataTableTest {
 		rs = s.executeQuery ("SELECT * FROM fdb_expro01 order by NDB_No");
 		DataTable dt3 = new DataTable();
 		dt3.fill(rs);		
-		dt2.writeJson("C:/prueba2.json");
-		dt3.writeJson("C:/prueba3.json");
 		assertEquals(dt3.equals(dt2),true);	
 		
+	}
+	@Test
+	public final void join() throws Exception {
+		Connection conexion = DriverManager.getConnection ("jdbc:mysql://localhost/farmacia2017","root", "patata");
+		Statement s = conexion.createStatement();
+		ResultSet rs = s.executeQuery ("SELECT * FROM fdb_expro01");
+		DataTable dt = new DataTable();
+		dt.fill(rs);
+		rs = s.executeQuery ("SELECT * FROM flav_dat");
+		DataTable dt2 = new DataTable();
+		dt2.fill(rs);
+		DataTable result = dt.join(dt2, "NDB_No");
+		
+		rs = s.executeQuery ("SELECT flav_dat.*,NDB_Name,FdGrp_Cd FROM flav_dat,fdb_expro01 where flav_dat.NDB_No=fdb_expro01.NDB_No");
+		DataTable dt3 = new DataTable();
+		dt3.fill(rs);
+		result.writeJson("C:/prueba2.json");
+		dt3.writeJson("C:/prueba3.json");
+		assertEquals(dt3.RowCount(),result.RowCount());
+		//assertEquals(dt3.equals(result),true);	
 	}
 	
 	
