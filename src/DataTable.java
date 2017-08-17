@@ -52,6 +52,9 @@ public class DataTable {
 	public void orderby(String key) throws Exception{
 		orderby(0,dt.size()-1,key);
 	}
+	public void orderby(String[] keys) throws Exception{
+		orderby(0,dt.size()-1,keys);
+	}
 	public void orderby(int o,int N,String key) throws Exception{
 		int i = o, j = N;
 		int middle = o + (N-o)/2;
@@ -83,7 +86,37 @@ public class DataTable {
         if (i <N)
         	orderby(i, N,key);
 	}
-	
+	public void orderby(int o,int N,String[] keys) throws Exception{
+		int i = o, j = N;
+		int middle = o + (N-o)/2;
+		DataRow pivot = dt.get(middle);
+        while (i <= j) {
+        	DataRow dri = dt.get(i);
+        	Integer m = (Integer)pivot.CompareTo(dri,keys);
+            while (m>0) {
+                i++;
+                dri = dt.get(i);
+            	m = (Integer)pivot.CompareTo(dri,keys);
+                
+            }
+            DataRow drj = dt.get(j);
+            m = (Integer)pivot.CompareTo(drj,keys);
+            while (m<0) {
+                j--;
+                drj = dt.get(j);
+                m = (Integer)pivot.CompareTo(drj,keys);
+            }
+            if (i <= j) {
+            	swap(i, j);
+                i++;
+                j--;
+            }
+        }
+        if (o < j)
+        	orderby(o, j,keys);
+        if (i <N)
+        	orderby(i, N,keys);
+	}
 	
 	public void swap(int i,int j) throws Exception{
 		

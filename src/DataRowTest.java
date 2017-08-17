@@ -130,5 +130,23 @@ public class DataRowTest {
 		
 		
 	}
+	@Test
+	public final void CompareTo() throws Exception{
+		DataRow dr = new DataRow();
+		dr.Add("id", new Integer(1));
+		dr.Add("no", new Integer(2));
+		dr.Add("valor", new Double(100.5));
+		DataRow dr2 = dr.Copy();
+		DataRow dr3 = new DataRow();
+		dr3.Add("id", new Integer(1));
+		dr3.Add("no", new Integer(1));
+		dr3.Add("valor", new Double(100));
+		String[] keys = {"id","no"};
+		Integer m =(Integer) dr.CompareTo(dr2, keys);
+		assertEquals(m.intValue(),0);
+		m =(Integer) dr.CompareTo(dr3, keys);
+		assertEquals(m.intValue(),1);
+		
+	}
 
 }

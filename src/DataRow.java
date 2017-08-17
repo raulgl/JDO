@@ -214,4 +214,34 @@ public class DataRow {
 				throw new Exception("Tipo de columna no permite ser ordenado");
 		 }
 	 }
+	 public Object CompareTo(DataRow dri,String[] keys) throws Exception{
+		 try {
+			 Integer m =0;
+			 int i=0;
+			 while(m==0 && i<keys.length){
+				 String key = keys[i];
+				 Class<?> cls = get(key).getClass();
+				 Method method = cls.getMethod("compareTo", Object.class);
+				 m =  (Integer) method.invoke(get(key),dri.get(key));
+				 
+				 i++;
+			 }
+		 return m;	 
+		 } catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				throw new Exception("Tipo de columna no permite ser ordenado");
+		 } catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				throw new Exception("Tipo de columna no permite ser ordenado");
+		 } catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				throw new Exception("Tipo de columna no permite ser ordenado");
+		 } catch (SecurityException e) {
+				// TODO Auto-generated catch block
+				throw new Exception("Tipo de columna no permite ser ordenado");
+		 } catch (NoSuchMethodException e) {
+				// TODO Auto-generated catch block
+				throw new Exception("Tipo de columna no permite ser ordenado");
+		 }
+	 }
 }

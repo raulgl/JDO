@@ -133,10 +133,24 @@ public class DataTableTest {
 		rs = s.executeQuery ("SELECT flav_dat.*,NDB_Name,FdGrp_Cd FROM flav_dat,fdb_expro01 where flav_dat.NDB_No=fdb_expro01.NDB_No");
 		DataTable dt3 = new DataTable();
 		dt3.fill(rs);
-		result.writeJson("C:/prueba2.json");
-		dt3.writeJson("C:/prueba3.json");
+		
 		assertEquals(dt3.RowCount(),result.RowCount());
 		//assertEquals(dt3.equals(result),true);	
+	}
+	@Test
+	public final void orderby() throws Exception{
+		Connection conexion = DriverManager.getConnection ("jdbc:mysql://localhost/farmacia2017","root", "patata");
+		Statement s = conexion.createStatement();
+		ResultSet rs = s.executeQuery ("SELECT * FROM flav_dat order by valor");
+		DataTable dt = new DataTable();
+		dt.fill(rs);
+		String[] keys = {"NDB_No","Nutr_No"};
+		dt.orderby(keys);
+		rs = s.executeQuery ("SELECT * FROM flav_dat order by NDB_No,Nutr_No");
+		DataTable dt2 = new DataTable();
+		dt2.fill(rs);
+		assertEquals(dt.equals(dt2),true);
+		
 	}
 	
 	
