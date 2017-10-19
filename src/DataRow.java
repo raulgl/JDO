@@ -1,8 +1,10 @@
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.json.*;
@@ -16,8 +18,11 @@ import java.sql.Date;
 
 public class DataRow {
 	 protected Hashtable <String, Object> dr;
-	 public DataRow(){
+	 protected LinkedHashSet<String> columnas;
+	 public DataRow(LinkedHashSet<String> colums){
 		 dr = new  Hashtable <String, Object>();
+		 columnas = colums;
+		 
 		 
 	 }
 	 public DataRow(DataRow row){
@@ -28,143 +33,240 @@ public class DataRow {
 			 dr.put(key, new Object());
 			 
 		 }
+		 columnas = row.columnas;
 	 }
-	 public DataRow Copy(){
-		 DataRow drnew = new DataRow();
+	 public DataRow Copy() throws Exception{
+		 DataRow drnew = new DataRow(columnas);
 		 Iterator<String> keys = keys().iterator();
 		 while(keys.hasNext()){
 			 String key = keys.next();
 			 drnew.Add(key, dr.get(key));
 			 
 		 }
+		 drnew.columnas = columnas;
 		 return drnew;
 	 }
-	 public DataRow(JsonArray array) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException{
+	 public DataRow(JsonArray array,LinkedHashSet<String> cols) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException{
+		 columnas = cols;
 		 dr = new  Hashtable <String, Object>();
 		 for ( int i = 0 ; i < array.size() ; i++ ) {
 			 JsonObject campo = array.getJsonObject(i);
 			 String key = campo.getString("Key");
 			 String tipo = campo.getString("Tipo");
 			 String valor = campo.getString("Valor");
-			 Class<?> cls = Class.forName(tipo);
-			 int j=0;
-			 Constructor<?>[] ctors = cls.getConstructors();
-			 boolean encontrado=false;
-			 Constructor<?> ctor=null;
-			 while(j<ctors.length && !encontrado){
-				 ctor = ctors[j];
-				 Class<?>[] paramTypes = ctor.getParameterTypes();
-				 if(paramTypes.length==1 && paramTypes[0].getSimpleName().compareTo("String")==0){
-					 encontrado=true;
+			 if(tipo.compareTo("java.lang.Object")==0) {
+				 dr.put(key, new Object());
+			 }
+			 else {
+				 Class<?> cls = Class.forName(tipo);
+				 int j=0;
+				 Constructor<?>[] ctors = cls.getConstructors();
+				 boolean encontrado=false;
+				 Constructor<?> ctor=null;
+				 while(j<ctors.length && !encontrado){
+					 ctor = ctors[j];
+					 Class<?>[] paramTypes = ctor.getParameterTypes();
+					 if(paramTypes.length==1 && paramTypes[0].getSimpleName().compareTo("String")==0){
+						 encontrado=true;
+					 }
+					 j++;
 				 }
-				 j++;
-			 }
-			 if(encontrado){
-				 Object o = ctor.newInstance(valor);
-				 dr.put(key, o);
-			 }
-			 else{
-				 Method method = cls.getMethod("valueOf", String.class);
-				 Object o = method.invoke("", valor);
-				 dr.put(key, o);
+				 if(encontrado){
+					 Object o = ctor.newInstance(valor);
+					 dr.put(key, o);
+				 }
+				 else{
+					 Method method = cls.getMethod("valueOf", String.class);
+					 Object o = method.invoke("", valor);
+					 dr.put(key, o);
 				 
+				 }
 			 }
 			 
 			 
 		 }
 		 
 	 }
+	 public void set_columna(LinkedHashSet<String> colums) {
+		 columnas = colums;
+	 }
 	 public DataRow (DataRow dri,DataRow drj,String key){
 		 dr = new  Hashtable <String, Object>();
-		 Iterator<String> keys = dri.keys().iterator();
+		 Iterator<String> keys = dri.columnas.iterator();
 		 while(keys.hasNext()){
 			 String llave = keys.next();
 			 dr.put(llave, dri.get(llave));
 			 
 		 }
-		 keys = drj.keys().iterator();
+		 keys = drj.columnas.iterator();
 		 while(keys.hasNext()){
 			 String llave = keys.next();
-			 if(llave.compareTo(key)!=0){
+			 if(llave.toUpperCase().compareTo(key.toUpperCase())!=0){
 				 dr.put(llave, drj.get(llave));
 			 }
 			 
 		 }
 		 
 	 }
-	 public void Add(String name,Object value){
-		 dr.put(name, value);
+	 public DataRow (DataRow dri,DataRow drj,String[] key){
+		 dr = new  Hashtable <String, Object>();
+		 Iterator<String> keys = dri.columnas.iterator();
+		 while(keys.hasNext()){
+			 String llave = keys.next();
+			 dr.put(llave, dri.get(llave));
+			 
+		 }
+		 keys = drj.columnas.iterator();
+		 while(keys.hasNext()){
+			 String llave = keys.next();
+			 if(!Funciones.buscar(key, llave)){
+				 dr.put(llave, drj.get(llave));
+			 }
+			 
+		 }
+		 
+	 }
+	 public void Add(String name,Object value) throws Exception{
+		 if(columnas.contains(name)) {
+			 if(value!=null){
+				 dr.put(name, value);
+			 }
+			 else {
+				 dr.put(name, new Object());
+			 }
+		 }
+		 else {
+			 throw new Exception("El nombre de la columna no es correcto");
+		 }
 	 }
 	 public void Add(int pos,Object value){
-		 dr.put(dr.keySet().toArray()[pos].toString(),value);
+		 if(value!=null){
+			 dr.put(columnas.toArray()[pos].toString(),value);
+		 }
+		 else {
+			 dr.put(columnas.toArray()[pos].toString(),new Object());
+		 }
 		 
 	 }
 	 public Object get(String name){
 		 return dr.get(name);
 	 }
 	 public Object get(int pos){
-		 String name = dr.keySet().toArray()[pos].toString();
+		 String name = columnas.toArray()[pos].toString();
 		 return dr.get(name);
 	 }
 	 public String get_String(String name){
-		 return dr.get(name).toString();
+		 if(dr.containsKey(name)) {
+			 return dr.get(name).toString();
+		 }
+		 else {
+			 return null;
+		 }
 	 }
 	 public String get_String(int pos){
-		 String name = dr.keySet().toArray()[pos].toString();
-		 return dr.get(name).toString();
+		 
+		 String name = columnas.toArray()[pos].toString();
+		 if(dr.containsKey(name)) {
+			 return dr.get(name).toString();
+		 }
+		 else {
+			 return null;
+		 }
 	 }
-	 public int get_int(String name){
-		 return ((Integer) dr.get(name)).intValue();
+	 public Integer get_int(String name){
+		 return (Integer) dr.get(name);
 	 }
-	 public int get_int(int pos){
-		 String name = dr.keySet().toArray()[pos].toString();
-		 return ((Integer) dr.get(name)).intValue();
+	 public Integer get_int(int pos){
+		 String name = columnas.toArray()[pos].toString();
+		 return ((Integer) dr.get(name));
 	 }
-	 public double get_double(String name){
+	 public Double get_double(String name){
 		 
 		 //return ((Double) dr.get(name)).doubleValue();
-		 return new Double (dr.get(name).toString());
+		 if(dr.get(name)!=null){
+			 return ((Double) dr.get(name)).doubleValue();
+		 }
+		 else{
+			 return Double.NaN;
+		 }
 	 }
-	 public double get_double(int pos){
+	 public Double get_double(int pos){
 		 
 		 //return ((Double) dr.get(name)).doubleValue();
-		 String name = dr.keySet().toArray()[pos].toString();
-		 return new Double (dr.get(name).toString());
+		 String name = columnas.toArray()[pos].toString();
+		 if(dr.get(name)!=null){
+			 return new Double (dr.get(name).toString());
+		 }
+		 else{
+			 return Double.NaN;
+		 }
 	 }
 	 public Date get_date(String name){
 		 //return new Date(dr.get(name).toString());
-		 return Date.valueOf(dr.get(name).toString());
+		 if(dr.get(name)!=null){
+			 return Date.valueOf(dr.get(name).toString());
+		 }
+		 else{
+			 return Date.valueOf("0000-00-00");
+		 }
 	 }
 	 public Date get_date(int pos){
 		 //return new Date(dr.get(name).toString());
-		 String name = dr.keySet().toArray()[pos].toString();
-		 return Date.valueOf(dr.get(name).toString());
+		 String name = columnas.toArray()[pos].toString();
+		 if(dr.get(name)!=null){
+			 return Date.valueOf(dr.get(name).toString());
+		 }
+		 else{
+			 return null;
+		 }
 	 }
 	 public Time get_time(String name){
-		 return Time.valueOf(dr.get(name).toString());
+		 if(dr.get(name)!=null){
+			 return Time.valueOf(dr.get(name).toString());
+		 }
+		 else{
+			 return null;
+		 }
 	 }
 	 public Time get_time(int pos){
-		 String name = dr.keySet().toArray()[pos].toString();
-		 return Time.valueOf(dr.get(name).toString());
+		 String name = columnas.toArray()[pos].toString();
+		 if(dr.get(name)!=null){
+			 return Time.valueOf(dr.get(name).toString());
+		 }
+		 else{
+			 return null;
+		 }
 	 }
 	 public Timestamp get_timestamp(String name){
-		 return Timestamp.valueOf(dr.get(name).toString());
+		 if(dr.get(name)!=null){
+			 return Timestamp.valueOf(dr.get(name).toString());
+		 }
+		 else{
+			 return null;
+		 }
 	 }
 	 public Timestamp get_timestamp(int pos){
-		 String name = dr.keySet().toArray()[pos].toString();
-		 return Timestamp.valueOf(dr.get(name).toString());
+		 String name = columnas.toArray()[pos].toString();
+		 if(dr.get(name)!=null){
+			 return Timestamp.valueOf(dr.get(name).toString());
+		 }
+		 else{
+			 return null;
+		 }
 	 }
 	 public void writeJson(JsonObjectBuilder jo,int i) throws ClassNotFoundException{
 	     JsonArrayBuilder jsa = Json.createArrayBuilder();
-		 for(String key: dr.keySet()){
+	     Iterator<String> keys = columnas.iterator();
+		 while(keys.hasNext()){
+			 String key = keys.next();
 			 JsonObjectBuilder col = Json.createObjectBuilder();
 			 col.add("Key", key);
 			 col.add("Tipo", dr.get(key).getClass().getName());
-			 if(dr.get(key).getClass().getSimpleName()=="Double"){
-				 col.add("Valor", get_double(key));
+			 if(dr.get(key).getClass().getSimpleName().compareTo("Double")==0){
+				 col.add("Valor", get_double(key).toString());
 			 }
-			 else if(dr.get(key).getClass().getSimpleName()=="Integer"){
-				 col.add("Valor", get_int(key));
+			 else if(dr.get(key).getClass().getSimpleName().compareTo("Integer")==0){
+				 col.add("Valor", get_int(key).toString());
 			 }
 			 else{
 				 col.add("Valor", dr.get(key).toString()); 
@@ -174,26 +276,54 @@ public class DataRow {
 		 }
 		 jo.add("Row"+i, jsa);		 
 	 }
+	 public String writeCSV() {
+		 String CSV ="";
+		 int i=0;
+		 while(i<Count()) {
+			 Object obj = get(i);
+			 if(obj.getClass().getSimpleName().compareTo("Object")==0) {
+				 CSV = CSV + get_String(i);
+			 }
+			 CSV = CSV + ";";
+			 i++;
+		 }
+		 return CSV;
+	 }
 	 public int Count(){
 		 return dr.size();
 	 }
 	 @Override
 	 public boolean equals(Object obj){
 		 DataRow row = (DataRow)obj;
-		 boolean iguales=true;
-		 for(String key: dr.keySet()){
-			 String origen=dr.get(key).toString();
-			 String destino= row.get_String(key);
-			 iguales = iguales && origen.compareTo(destino)==0;
+		 boolean iguales=(row.Count()==Count());
+		 if(iguales){
+			 Iterator<String> keys = columnas.iterator();
+			 while(keys.hasNext() && iguales){
+				 String key = keys.next();
+				 Object org = dr.get(key);
+				 Object des = row.get(key);
+				 if(org.getClass().getSimpleName().compareTo("Object")!=0 && des.getClass().getSimpleName().compareTo("Object")!=0) {
+					 String origen=dr.get(key).toString();
+					 String destino= row.get_String(key);
+					 iguales = iguales && origen.compareTo(destino)==0;
+					 if(!iguales) {
+						 @SuppressWarnings("unused")
+						 String error= "no son iguales"; 
+					 }
+				 }
+			 }
 		 }
 		 return iguales;
 		 
 	 }
 	 public Set<String> keys(){
-		 return dr.keySet();
+		 return columnas;
 	 }
 	 public Object CompareTo(DataRow dri,String key) throws Exception{
 		 try {
+			 if(get(key)==null){
+				 
+			 }
 			 Class<?> cls = get(key).getClass();
 			 Method method = cls.getMethod("compareTo", Object.class);
 			 return method.invoke(get(key),dri.get(key));
@@ -244,4 +374,5 @@ public class DataRow {
 				throw new Exception("Tipo de columna no permite ser ordenado");
 		 }
 	 }
+	
 }

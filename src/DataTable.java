@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.json.*;
@@ -19,9 +20,10 @@ import javax.json.*;
 
 public class DataTable {
 	protected ArrayList<DataRow> dt;
-	protected Set<String> columnas;
+	protected LinkedHashSet<String> columnas;
 	public DataTable(){
 		dt = new ArrayList();
+		columnas = new LinkedHashSet<String>();
 	}
 	public DataTable(String path) throws Exception{
 		File f = new File(path);
@@ -30,24 +32,36 @@ public class DataTable {
 		try {
 			fis = new FileInputStream(f);
 			JsonReader jsr = Json.createReader(fis);
-			JsonObject jobj = jsr.readObject();			
-			for ( int i = 0 ; i < jobj.keySet().size() ; i++ ) { 				
+			JsonObject jobj = jsr.readObject();
+			for ( int i = 0 ; i < jobj.keySet().size() ; i++ ) {
 				JsonArray row = (JsonArray) jobj.get("Row"+i);
-				DataRow dr = new DataRow(row);
+				if(i==0) {
+					columnas = obtener_columnas(row);
+				}
+				DataRow dr = new DataRow(row,columnas);
 				dt.add(dr);				
 			}
 			jsr.close();
-			columnas = dt.get(0).keys();
+			
 		} catch (FileNotFoundException e) {
 			throw new Exception("No se ha podido parsear el DataTable correctamente");
 		}
 		
 	}
+	public static LinkedHashSet<String> obtener_columnas(JsonArray array){
+		LinkedHashSet<String> cols = new LinkedHashSet<String>();
+		for ( int i = 0 ; i < array.size() ; i++ ) {
+			 JsonObject campo = array.getJsonObject(i);
+			 String key = campo.getString("Key");
+			 cols.add(key);
+		}
+		return cols;
+	}
 	public DataTable (DataTable dtable){
 		ArrayList<DataRow> dtrows = dtable.dt;
 		DataRow patron = dtrows.get(0);
 		dt = new ArrayList();
-		columnas = patron.keys();
+		columnas = dtable.columnas;
 	}
 	public void orderby(String key) throws Exception{
 		orderby(0,dt.size()-1,key);
@@ -56,6 +70,7 @@ public class DataTable {
 		orderby(0,dt.size()-1,keys);
 	}
 	public void orderby(int o,int N,String key) throws Exception{
+		
 		int i = o, j = N;
 		int middle = o + (N-o)/2;
 		DataRow pivot = dt.get(middle);
@@ -130,6 +145,7 @@ public class DataTable {
 		
 	}
 	public DataTable join (DataTable dt,String key) throws Exception{
+		
 		DataTable result = new DataTable();
 		dt.orderby(key);
 		//dt.writeJson("C:/prueba.json");
@@ -163,7 +179,7 @@ public class DataTable {
 				i++;
 			}
 		}
-		result.columnas = new HashSet<String>();
+		result.columnas = new LinkedHashSet<String>();
 		Iterator<String> keys = columnas.iterator();
 		 while(keys.hasNext()){
 			 String llave = keys.next();
@@ -178,31 +194,94 @@ public class DataTable {
 		 }
 		return result;
 	}
-	public DataTable Copy(){
+	public DataTable join (DataTable dt,String[] keys) throws Exception{
+		DataTable result = new DataTable();
+		dt.orderby(keys);
+		//dt.writeJson("C:/prueba.json");
+		orderby(keys);
+		result.columnas = new LinkedHashSet<String>();
+		Iterator<String> llaves = columnas.iterator();
+		while(llaves.hasNext()){
+			 String llave = llaves.next();
+			 result.columnas.add(llave);
+		}
+		llaves = dt.columnas.iterator();
+		while(llaves.hasNext()){
+			 String llave = llaves.next();
+			 if(!Funciones.buscar(keys,llave)){
+				 result.columnas.add(llave);
+			 }
+		}
+		int j = 0;
+		int i = 0;
+		while(i<RowCount() && j<dt.RowCount()){
+			DataRow dri = row(i);
+			DataRow drj = dt.row(j);
+			Integer m = (Integer)drj.CompareTo(dri,keys);
+			if(m==0){
+				int k=j;
+				DataRow drk = dt.row(k);
+				while(k<dt.RowCount() && m==0){
+					DataRow dr = new DataRow(dri,drk,keys);
+					dr.columnas= result.columnas;
+					result.addRow(dr);
+					k++;
+					if(k<dt.RowCount()){
+						drk = dt.row(k);
+						m = (Integer)drk.CompareTo(dri,keys);
+					}
+					
+										
+				}
+				//i++;
+			}
+			if(m<0){
+				j++;
+			}
+			else{
+				i++;
+			}
+		}
+		
+		return result;
+	}
+	public DataTable Copy() throws Exception{
 		DataTable newdt = new DataTable();
 		for ( int i = 0 ; i < dt.size() ; i++ ) {
 			newdt.addRow(dt.get(i).Copy());
 		}
-		newdt.columnas = newdt.dt.get(0).keys();
+		Iterator<String> llaves = columnas.iterator();
+		 while(llaves.hasNext()){
+			 String llave = llaves.next();
+			 newdt.columnas.add(llave);
+		 }
+		
 		return newdt;
 		
 	}
 	public DataRow row(int i){
 		return dt.get(i);
 	}
-	public void fill(ResultSet rs) throws SQLException{
+	public void fill(ResultSet rs) throws Exception{
+		int numColumns = rs.getMetaData().getColumnCount();
+		columnas = new LinkedHashSet<String>();
+		for ( int i = 1 ; i <= numColumns ; i++ ) {
+			String label = rs.getMetaData().getColumnLabel(i);
+			columnas.add(label);
+		}
 		while ( rs.next() ) {
-			int numColumns = rs.getMetaData().getColumnCount();
-			DataRow dr = new DataRow();
+			numColumns = rs.getMetaData().getColumnCount();
+			DataRow dr = new DataRow(columnas);
+			
             for ( int i = 1 ; i <= numColumns ; i++ ) {
               
               String label = rs.getMetaData().getColumnLabel(i);
-              dr.Add(label, rs.getObject(i));
-              
+              dr.Add(label, rs.getObject(i));              
             }
 			dt.add(dr);
 		}
-		columnas = dt.get(0).keys();
+		
+		
 	}
 	public void writeJson(String path) throws Exception{
 		JsonObjectBuilder jo = Json.createObjectBuilder();
@@ -219,6 +298,29 @@ public class DataTable {
 			// TODO Auto-generated catch block
 			throw new Exception("No se ha podido guardar el DataTable.Por favor revise permisos");
 		}
+		
+		 
+	}
+	public void writeCSV(String path) throws Exception {
+		 try {
+			FileWriter writer = new FileWriter(path);
+			Iterator<String> llaves = columnas.iterator();
+			 while(llaves.hasNext()){
+				 String llave = llaves.next();
+				 writer.append(llave);
+				 writer.append(";");
+			 }
+			 writer.append("\n");
+			for ( int i = 0 ; i < dt.size() ; i++ ) {
+				writer.append(dt.get(i).writeCSV());
+				writer.append("\n");
+			}
+			writer.flush();
+	        writer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			throw new Exception("El path introducido es erroneo");
+		}
 		 
 	}
 	@Override
@@ -229,15 +331,19 @@ public class DataTable {
         	iguales=false;
         }
         else{
-        	for ( int i = 0 ; i < dt.size() ; i++ ) {
+        	int i=0;
+        	while(i < dt.size() && iguales) {        	
         		iguales = iguales && dt.get(i).equals(table.row(i));
-        		
+        		i++;        		
         	}
         }
         return iguales;
         
         
     }
+	public void add_columna(String columna) {
+		columnas.add(columna);
+	}
 	public int RowCount(){
 		return dt.size();
 	}
@@ -247,10 +353,14 @@ public class DataTable {
 	public void addRow(DataRow dr){
 		dt.add(dr);		
 	}
-	public DataRow NewRow(){
-		DataRow dr = new DataRow();
-		for(String key: columnas){
+	public DataRow NewRow() throws Exception{
+		DataRow dr = new DataRow(columnas);
+		Object[] array = columnas.toArray();
+		int i=0;
+		while(i<array.length) {
+			String key = array[i].toString();
 			dr.Add(key, new Object());
+			i++;
 		}
 		return dr;
 	}

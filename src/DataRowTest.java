@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Date;
 import java.sql.Time;
+import java.util.LinkedHashSet;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -28,8 +29,14 @@ public class DataRowTest {
 	}
 
 	@Test
-	public final void testDataRow() {
-		DataRow dr = new DataRow();
+	public final void testDataRow() throws Exception {
+		DataTable dt = new DataTable();
+		dt.add_columna("key1");
+		dt.add_columna("key2");
+		dt.add_columna("key3");
+		dt.add_columna("key4");
+		dt.add_columna("key5");
+		DataRow dr = dt.NewRow();
 		dr.Add("key1", new Double(100.5));
 		dr.Add("key3", new Integer(100));
 		dr.Add("key2", "valor");
@@ -41,7 +48,7 @@ public class DataRowTest {
 			dr.writeJson(jo,1);
 			JsonObject jso = jo.build();
 			JsonArray array = jso.getJsonArray("Row1");
-			DataRow dr2 = new DataRow(array);
+			DataRow dr2 = new DataRow(array,dt.columnas);
 			assertEquals(dr2.get_double("key1"),dr.get_double("key1"),0.1);
 			assertEquals(dr2.get_String("key2"),dr.get_String("key2"));
 			assertEquals(dr2.get_int("key3"),dr.get_int("key3"));
@@ -74,37 +81,45 @@ public class DataRowTest {
 	
 
 	@Test
-	public final void testAdd() {
-		DataRow dr = new DataRow();
+	public final void testAdd() throws Exception {
+		DataTable dt = new DataTable();
+		dt.add_columna("key");
+		DataRow dr = dt.NewRow();
 		dr.Add("key", "valor");
 		String resultado = dr.get_String("key");
 		assertEquals(resultado,"valor");
 	}
 
 	@Test
-	public final void testGet_String() {
-		DataRow dr = new DataRow();
+	public final void testGet_String() throws Exception {
+		DataTable dt = new DataTable();
+		dt.add_columna("key");
+		DataRow dr = dt.NewRow();
 		dr.Add("key", "valor");
 		String resultado = dr.get_String("key");
 		assertEquals(resultado,"valor");
 	}
 
 	@Test
-	public final void testGet_int() {
-		DataRow dr = new DataRow();
+	public final void testGet_int() throws Exception {
+		DataTable dt = new DataTable();
+		dt.add_columna("key");
+		DataRow dr = dt.NewRow();
 		dr.Add("key", new Integer(100));
 		int resultado = dr.get_int("key");
 		assertEquals(resultado,100);
 	}
 	@Test
-	public final void testGet_double() {
-		DataRow dr = new DataRow();
+	public final void testGet_double() throws Exception {
+		DataTable dt = new DataTable();
+		dt.add_columna("key");
+		DataRow dr = dt.NewRow();
 		dr.Add("key", new Double(100.5));
 		double resultado = dr.get_double("key");
 		assertEquals(resultado,100.5,0.1);
 	}
 	@Test
-	public final void writeJson() throws ClassNotFoundException, IOException {
+	/*public final void writeJson() throws ClassNotFoundException, IOException {
 		DataRow dr = new DataRow();
 		dr.Add("key1", new Double(100.5));
 		dr.Add("key3", new Integer(100));
@@ -115,9 +130,15 @@ public class DataRowTest {
 		jso.toString();
 		assertEquals(jo.build().toString(),"\"{Row\":[{\"key\":\"Key\",\"Tipo\":\"Double\",\"Valor\":\"100.5\"}]}");
 	}
-	@Test
-	public final void Copy() throws ClassNotFoundException, IOException {
-		DataRow dr = new DataRow();
+	@Test*/
+	public final void Copy() throws Exception {
+		DataTable dt = new DataTable();
+		dt.add_columna("key1");
+		dt.add_columna("key2");
+		dt.add_columna("key3");
+		dt.add_columna("key4");
+		dt.add_columna("key5");
+		DataRow dr = dt.NewRow();
 		dr.Add("key1", new Double(100.5));
 		dr.Add("key3", new Integer(100));
 		dr.Add("key2", "valor");
@@ -132,12 +153,16 @@ public class DataRowTest {
 	}
 	@Test
 	public final void CompareTo() throws Exception{
-		DataRow dr = new DataRow();
+		DataTable dt = new DataTable();
+		dt.add_columna("id");
+		dt.add_columna("no");
+		dt.add_columna("valor");
+		DataRow dr = dt.NewRow();
 		dr.Add("id", new Integer(1));
 		dr.Add("no", new Integer(2));
 		dr.Add("valor", new Double(100.5));
 		DataRow dr2 = dr.Copy();
-		DataRow dr3 = new DataRow();
+		DataRow dr3 = dt.NewRow();
 		dr3.Add("id", new Integer(1));
 		dr3.Add("no", new Integer(1));
 		dr3.Add("valor", new Double(100));
@@ -146,6 +171,33 @@ public class DataRowTest {
 		assertEquals(m.intValue(),0);
 		m =(Integer) dr.CompareTo(dr3, keys);
 		assertEquals(m.intValue(),1);
+		
+	}
+	@Test
+	public final void DataRow_array_string() throws Exception{
+		DataTable dt = new DataTable();
+		dt.add_columna("id");
+		dt.add_columna("no");
+		dt.add_columna("valor");
+		DataRow dr = dt.NewRow();
+		dr.Add("id", new Integer(1));
+		dr.Add("no", new Integer(2));
+		dr.Add("valor", new Double(100.5));
+		dt = new DataTable();
+		dt.add_columna("id");
+		dt.add_columna("no");
+		dt.add_columna("ingesta");
+		DataRow dr3 = dt.NewRow();
+		dr3.Add("id", new Integer(1));
+		dr3.Add("no", new Integer(2));
+		dr3.Add("ingesta", new Double(100));
+		String[] key = {"id","no"};
+		DataRow dr2 = new DataRow(dr,dr3,key);
+		assertEquals(dr2.Count(),4);
+		assertEquals(dr2.get_int("id").intValue(),1);
+		assertEquals(dr2.get_int("no").intValue(),2);
+		assertEquals(dr2.get_double("valor"),100.5,0.5);
+		assertEquals(dr2.get_double("ingesta"),100,0.5);
 		
 	}
 
