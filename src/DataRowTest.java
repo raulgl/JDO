@@ -28,7 +28,7 @@ public class DataRowTest {
 	public void tearDown() throws Exception {
 	}
 
-	@Test
+	/*@Test
 	public final void testDataRow() throws Exception {
 		DataTable dt = new DataTable();
 		dt.add_columna("key1");
@@ -77,7 +77,7 @@ public class DataRowTest {
 		}
 		
 		
-	}
+	}*/
 	
 
 	@Test

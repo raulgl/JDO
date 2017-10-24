@@ -8,6 +8,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.json.*;
+import javax.json.stream.JsonGenerator;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -56,6 +57,9 @@ public class DataRow {
 			 String valor = campo.getString("Valor");
 			 if(tipo.compareTo("java.lang.Object")==0) {
 				 dr.put(key, new Object());
+			 }
+			 else if(tipo.compareTo("java.lang.String")==0) {
+				 dr.put(key, valor);
 			 }
 			 else {
 				 Class<?> cls = Class.forName(tipo);
@@ -254,27 +258,27 @@ public class DataRow {
 			 return null;
 		 }
 	 }
-	 public void writeJson(JsonObjectBuilder jo,int i) throws ClassNotFoundException{
-	     JsonArrayBuilder jsa = Json.createArrayBuilder();
+	 public void writeJson(JsonGenerator jgen,int i) throws ClassNotFoundException{
+		 jgen.writeStartArray("Row"+i);
 	     Iterator<String> keys = columnas.iterator();
 		 while(keys.hasNext()){
 			 String key = keys.next();
-			 JsonObjectBuilder col = Json.createObjectBuilder();
-			 col.add("Key", key);
-			 col.add("Tipo", dr.get(key).getClass().getName());
+			 jgen.writeStartObject();
+			 jgen.write("Key", key);
+			 jgen.write("Tipo", dr.get(key).getClass().getName());
 			 if(dr.get(key).getClass().getSimpleName().compareTo("Double")==0){
-				 col.add("Valor", get_double(key).toString());
+				 jgen.write("Valor", get_double(key).toString());
 			 }
 			 else if(dr.get(key).getClass().getSimpleName().compareTo("Integer")==0){
-				 col.add("Valor", get_int(key).toString());
+				 jgen.write("Valor", get_int(key).toString());
 			 }
 			 else{
-				 col.add("Valor", dr.get(key).toString()); 
+				 jgen.write("Valor", dr.get(key).toString()); 
 			 
 		 	 }
-			 jsa.add(col);
+			 jgen.writeEnd();
 		 }
-		 jo.add("Row"+i, jsa);		 
+		 jgen.writeEnd();	 
 	 }
 	 public String writeCSV() {
 		 String CSV ="";

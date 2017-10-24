@@ -1,20 +1,26 @@
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.json.*;
+import javax.json.stream.JsonGenerator;
+import javax.json.stream.JsonGeneratorFactory;
 
 
 
@@ -25,13 +31,17 @@ public class DataTable {
 		dt = new ArrayList();
 		columnas = new LinkedHashSet<String>();
 	}
-	public DataTable(String path) throws Exception{
+	public DataTable(String path,Charset cs) throws Exception{
+		final Map<String, String> generatorConfig = new HashMap<String, String>();
+	    generatorConfig.put(JsonGenerator.PRETTY_PRINTING, "true");
+	    JsonReaderFactory rf = Json.createReaderFactory(generatorConfig);
+	    
 		File f = new File(path);
 		FileInputStream fis;
 		dt = new ArrayList();
 		try {
 			fis = new FileInputStream(f);
-			JsonReader jsr = Json.createReader(fis);
+			JsonReader jsr = rf.createReader(fis, cs);
 			JsonObject jobj = jsr.readObject();
 			for ( int i = 0 ; i < jobj.keySet().size() ; i++ ) {
 				JsonArray row = (JsonArray) jobj.get("Row"+i);
@@ -283,23 +293,19 @@ public class DataTable {
 		
 		
 	}
-	public void writeJson(String path) throws Exception{
-		JsonObjectBuilder jo = Json.createObjectBuilder();
-		 for ( int i = 0 ; i < dt.size() ; i++ ) {
-			 dt.get(i).writeJson(jo,i);
-		 }
-		 JsonObject json = jo.build();
-		 JsonWriter jsonWriter;
-		try {
-			jsonWriter = Json.createWriter(new FileWriter(path));
-			jsonWriter.writeObject(json);
-			jsonWriter.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			throw new Exception("No se ha podido guardar el DataTable.Por favor revise permisos");
-		}
+	public void writeJson(String path,Charset charset) throws Exception{
 		
-		 
+		final Map<String, String> generatorConfig = new HashMap<String, String>();
+	    generatorConfig.put(JsonGenerator.PRETTY_PRINTING, "true");
+	    JsonGeneratorFactory factory = Json.createGeneratorFactory(generatorConfig);
+	    JsonGenerator jgen =factory.createGenerator(new FileOutputStream(path), charset);
+	    jgen.writeStartObject();
+		 for ( int i = 0 ; i < dt.size() ; i++ ) {
+			 dt.get(i).writeJson(jgen,i);
+		 }
+		jgen.writeEnd();
+		jgen.flush();
+		jgen.close();		 
 	}
 	public void writeCSV(String path) throws Exception {
 		 try {

@@ -1,5 +1,6 @@
 import static org.junit.Assert.*;
 
+import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -64,11 +65,11 @@ public class DataTableTest {
 	public final void writeJson() throws Exception {
 		Connection conexion = DriverManager.getConnection ("jdbc:mysql://localhost/prostr","root", "patata");
 		Statement s = conexion.createStatement();
-		ResultSet rs = s.executeQuery ("select * from pfpagad limit 100");
+		ResultSet rs = s.executeQuery ("select * from pfcfunc");
 		DataTable dt = new DataTable();
 		dt.fill(rs);
-		dt.writeJson("C:/prueba.json");
-		DataTable dt2 = new DataTable("C:/prueba.json");
+		dt.writeJson("C:/prueba.json",Charset.forName("UTF-8"));
+		DataTable dt2 = new DataTable("C:/prueba.json",Charset.forName("UTF-8"));
 		assertEquals(dt.RowCount(),dt2.RowCount());
 		assertEquals(dt.ColumCount(),dt2.ColumCount());
 		assertEquals(dt2.equals(dt),true);
